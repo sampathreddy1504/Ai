@@ -14,6 +14,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Modal, Button, Form, ListGroup, Badge, Spinner } from "react-bootstrap";
 import axios from "axios";
+import { API_URL } from "../config";
 import "../styles/Calendar.css";
 
 const locales = { "en-US": enUS };
@@ -48,7 +49,7 @@ export default function MyCalendar() {
       const token = localStorage.getItem("authToken");
       if (!token) return;
 
-      const response = await axios.get("/api/tasks", { params: { token } });
+  const response = await axios.get(`${API_URL}/api/tasks`, { params: { token } });
       if (response.data.success) {
         const taskEvents = response.data.tasks.map((task) => ({
           id: task.id,
@@ -96,7 +97,7 @@ export default function MyCalendar() {
       const eventToDelete = events.find((e) => e.id === id);
 
       if (eventToDelete?.type === "task" && token) {
-        await axios.delete(`/api/tasks/${id}`, { params: { token } });
+  await axios.delete(`${API_URL}/api/tasks/${id}`, { params: { token } });
       }
 
       setEvents(events.filter((e) => e.id !== id));

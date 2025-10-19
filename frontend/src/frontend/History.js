@@ -3,6 +3,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Modal, Button } from "react-bootstrap";
 import axios from "axios";
+import { API_URL } from "../config";
 
 function History() {
   const [history, setHistory] = useState([]);
@@ -24,7 +25,7 @@ function History() {
         return;
       }
 
-      const response = await axios.get("/api/conversations", {
+      const response = await axios.get(`${API_URL}/api/conversations`, {
         params: { token }
       });
 
@@ -70,7 +71,7 @@ function History() {
       if (!token) return;
 
       // Load messages for this chat
-      const response = await axios.get(`/api/conversations/${chat.id}`, {
+      const response = await axios.get(`${API_URL}/api/conversations/${chat.id}`, {
         params: { token }
       });
 

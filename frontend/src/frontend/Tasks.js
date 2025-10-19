@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/Tasks.css";
+import { API_URL } from "../config";
 
 export default function Tasks() {
   const [activeTab, setActiveTab] = useState("all");
@@ -13,7 +14,7 @@ export default function Tasks() {
       try {
         const token = localStorage.getItem("authToken");
         const response = await fetch(
-          `/api/tasks?token=${encodeURIComponent(token || "")}`
+          `${API_URL}/api/tasks?token=${encodeURIComponent(token || "")}`
         );
         const data = await response.json();
 
@@ -85,7 +86,7 @@ export default function Tasks() {
     try {
       const token = localStorage.getItem("authToken");
       if (token) {
-        await fetch(`/api/tasks/${id}?token=${encodeURIComponent(token)}`, {
+        await fetch(`${API_URL}/api/tasks/${id}?token=${encodeURIComponent(token)}`, {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
         });
@@ -111,7 +112,7 @@ export default function Tasks() {
       // Persist change to backend if authenticated
       const token = localStorage.getItem("authToken");
       if (token) {
-        fetch(`/api/tasks/${id}/status?token=${encodeURIComponent(token)}&status=${encodeURIComponent(newStatus)}`, {
+        fetch(`${API_URL}/api/tasks/${id}/status?token=${encodeURIComponent(token)}&status=${encodeURIComponent(newStatus)}`, {
           method: "PATCH",
         }).catch((err) => console.error("Failed to update task status:", err));
       }
@@ -130,11 +131,11 @@ export default function Tasks() {
       const token = localStorage.getItem("authToken");
       // If a token exists, call backend to remove completed tasks server-side
       if (token) {
-        await fetch(`/api/tasks/clear_completed?token=${encodeURIComponent(token)}`, {
+        await fetch(`${API_URL}/api/tasks/clear_completed?token=${encodeURIComponent(token)}`, {
           method: "DELETE",
         });
         // refetch tasks from server to get authoritative list
-        const response = await fetch(`/api/tasks?token=${encodeURIComponent(token || "")}`);
+        const response = await fetch(`${API_URL}/api/tasks?token=${encodeURIComponent(token || "")}`);
         const data = await response.json();
         if (data.success && Array.isArray(data.tasks)) {
           const formattedTasks = data.tasks.map((task) => ({
