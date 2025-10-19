@@ -1,17 +1,30 @@
+import os
 import psycopg2
-from psycopg2.extras import RealDictCursor  # ✅ fetch as dict
-from app.config import settings
+from psycopg2.extras import RealDictCursor  # ✅ fetch rows as dicts
+from urllib.parse import urlparse
 
 # ---------------- DATABASE CONNECTION ----------------
 def get_connection():
-    return psycopg2.connect(
-        dbname=settings.POSTGRES_DB,
-        user=settings.POSTGRES_USER,
-        password=settings.POSTGRES_PASSWORD,
-        host=settings.POSTGRES_HOST,
-        port=settings.POSTGRES_PORT,
-        cursor_factory=RealDictCursor  # ✅ ensures fetch returns dicts
-    )
+    """
+    Connects to PostgreSQL using DATABASE_URL (Render-style).
+    If DATABASE_URL isn't found, fallback to local .env variables.
+    """
+    db_url = os.getenv("DATABASE_URL")
+
+    if db_url:
+        # ✅ Render / Cloud connection
+        return psycopg2.connect(db_url, cursor_factory=RealDictCursor)
+    else:
+        # ✅ Local fallback (for Docker/local dev)
+        from app.config import settings
+        return psycopg2.connect(
+            dbname=settings.POSTGRES_DB,
+            user=settings.POSTGRES_USER,
+            password=settings.POSTGRES_PASSWORD,
+            host=settings.POSTGRES_HOST,
+            port=settings.POSTGRES_PORT,
+            cursor_factory=RealDictCursor
+        )
 
 # ---------------- TABLE SETUP ----------------
 def create_tables():
