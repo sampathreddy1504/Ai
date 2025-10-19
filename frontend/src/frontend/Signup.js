@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { API_URL } from "../config"; // ✅ import backend URL
 
 function Signup() {
   const [step, setStep] = useState("form"); // form | otp (otp disabled after JWT auth)
@@ -27,15 +28,23 @@ function Signup() {
       setMessage("⚠️ Please fill all fields");
       return;
     }
+
     setLoading(true);
     setMessage("⏳ Creating account...");
+
     try {
-      const res = await axios.post("/auth/signup", { name, email, password });
+      const res = await axios.post(`${API_URL}/auth/signup`, {
+        name,
+        email,
+        password,
+      });
+
       if (res.data.success && res.data.token && res.data.user) {
         localStorage.setItem("authToken", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
         setMessage("✅ Account created! Redirecting...");
-        // Restore last chat session if any so reload continues previous chat
+
+        // Optional chat session restore (if applicable)
         try {
           let chatId = localStorage.getItem("chatId");
           if (!chatId) {
@@ -45,24 +54,32 @@ function Signup() {
             if (ids.length) {
               const lastId = ids[ids.length - 1];
               localStorage.setItem("chatId", lastId);
-              localStorage.setItem("chatMessages", JSON.stringify(archive[lastId] || []));
+              localStorage.setItem(
+                "chatMessages",
+                JSON.stringify(archive[lastId] || [])
+              );
             } else {
               const msgRaw = localStorage.getItem("chatMessages");
               const msgs = msgRaw ? JSON.parse(msgRaw) : null;
               if (msgs && Array.isArray(msgs) && msgs.length) {
-                const recoveredId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+                const recoveredId = `${Date.now()}-${Math.random()
+                  .toString(36)
+                  .slice(2, 8)}`;
                 localStorage.setItem("chatId", recoveredId);
                 localStorage.setItem("chatMessages", JSON.stringify(msgs));
               }
             }
           }
-        } catch {}
+        } catch (e) {
+          console.error("Error restoring chat session:", e);
+        }
 
         setTimeout(() => (window.location.href = "/chat"), 500);
       } else {
         setMessage(res.data.message || "Signup failed");
       }
     } catch (err) {
+      console.error(err);
       setMessage(err.response?.data?.message || "Signup failed");
     } finally {
       setLoading(false);
@@ -70,7 +87,6 @@ function Signup() {
   };
 
   const handleVerifyOtp = async () => {
-    // OTP flow disabled; using immediate JWT signup
     setMessage("⚠️ OTP flow is disabled.");
   };
 
