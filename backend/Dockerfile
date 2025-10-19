@@ -1,41 +1,61 @@
-# Use official Python 3.11 slim image
-FROM python:3.11-slim
+# ===============================
+#  Base Image
+# ===============================
+FROM python:3.11-slim AS base
 
-# Set working directory
+# Prevent Python from buffering logs
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Working directory
 WORKDIR /app
 
-# Copy and install dependencies first for caching
-COPY requirements.txt .
-
-# Upgrade pip and install dependencies
-ARG INSTALL_ML_LIBS=false
+# ===============================
+#  Install System Dependencies
+# ===============================
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    git \
     libpq-dev \
+    git \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy application code
-COPY requirements.txt /app/requirements.txt
-RUN pip install --upgrade pip \
+# ===============================
+#  Copy requirements and install deps
+# ===============================
+COPY requirements.txt ./
+
+# Use build arg to control heavy ML installs
+ARG INSTALL_ML_LIBS=false
+
+# Upgrade pip and install dependencies
+RUN pip install --upgrade pip setuptools wheel \
     && if [ "$INSTALL_ML_LIBS" = "true" ]; then \
+        echo "⚙️ Installing full requirements (with ML libs)..." && \
         pip install --no-cache-dir -r requirements.txt; \
     else \
-        # Install all requirements except heavy ML packages (torch/transformers/sentence-transformers)
-        sed -E '/^(torch|transformers|sentence-transformers)/I d' requirements.txt > /tmp/reqs.txt && \
+        echo "⚙️ Installing lightweight requirements (no ML libs)..." && \
+        grep -viE '^(torch|transformers|sentence-transformers)' requirements.txt > /tmp/reqs.txt && \
         pip install --no-cache-dir -r /tmp/reqs.txt; \
     fi
 
-# Copy application code (after installing deps to maximize layer cache)
-COPY . /app
+# ===============================
+#  Copy Application Code
+# ===============================
+COPY . .
 
-# Ensure environment variables are available inside the container
-# If you are building from backend directory, this will copy backend/.env → /app/.env
-# Do NOT copy secret .env by default; Render will provide env vars via its dashboard
-# If you need a local .env for development, it's excluded in .dockerignore
-
-# Expose FastAPI port (use 5000 to match frontend proxy and app config)
+# ===============================
+#  Runtime Configuration
+# ===============================
+# You can override these via Render/Env vars
+ENV PORT=5000
 EXPOSE 5000
 
-# Start the application on port 5000
+# Optional: force UTF-8 locale
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
+# ===============================
+#  Command to Start FastAPI App
+# ===============================
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5000", "--workers", "1"]
