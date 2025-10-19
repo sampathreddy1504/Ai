@@ -33,7 +33,12 @@ __pycache__/
 venv/
 env/
 .venv/
+ 
+ # .gitignore
+node_modules/
+.cache/
 
+.env
 # Python packaging
 dist/
 build/
