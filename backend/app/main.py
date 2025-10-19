@@ -28,8 +28,6 @@ app = FastAPI(title="Personal AI Assistant")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5000",
         "https://ai-4-w41p.onrender.com"  # deployed frontend
     ],
     allow_credentials=True,
