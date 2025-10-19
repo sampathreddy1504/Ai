@@ -1,0 +1,131 @@
+/* Settings page light tweaks to complement Bootstrap */
+.settings-card .card-header {
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.settings-option:hover {
+  background: rgba(13, 110, 253, 0.04);
+}
+
+.settings-sidebar .list-group-item.active {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.settings-sidebar .list-group-item {
+  transition: background 0.2s ease;
+}
+
+/* Theme variables for Settings */
+.app-section {
+  background: var(--settings-bg, #f8f9fa);
+  color: var(--settings-fg, #0f172a);
+}
+
+.settings-sidebar {
+  background: var(--settings-sidebar-bg, #ffffff);
+}
+
+.settings-card .card-header {
+  background: var(--settings-card-header, #ffffff);
+}
+
+/* Make action buttons inside settings consistently red */
+.settings-card .btn-danger,
+.settings-card .btn-outline-danger {
+  background-color: var(--danger, #ef4444);
+  color: #fff;
+  border: none;
+}
+
+.settings-card .btn-outline-danger {
+  background-color: transparent;
+  color: var(--danger, #ef4444);
+  border: 1px solid rgba(239,68,68,0.12);
+}
+
+.settings-card .btn-danger:hover,
+.settings-card .btn-outline-danger:hover {
+  background-color: var(--danger-hover, #dc2626);
+  color: #fff;
+}
+
+/* Dark theme overrides */
+body.dark-theme {
+  --settings-bg: #071023;
+  --settings-fg: #e6eef8;
+  --settings-sidebar-bg: #06070a;
+  --settings-card-header: #071023;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+}
+
+body.dark-theme .settings-sidebar .list-group-item {
+  color: #e6eef8;
+}
+
+body.dark-theme .settings-card .card-header {
+  color: #e6eef8;
+}
+
+/* Force account/action buttons in settings to be red for any theme */
+.settings-card .btn-danger,
+.settings-card .btn-outline-danger,
+.settings-card .btn-danger:focus,
+.settings-card .btn-outline-danger:focus {
+  background-color: #ef4444 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.settings-card .btn-outline-danger {
+  background-color: #ef4444 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+/* Extra force: any button inside settings card becomes filled danger to avoid outline/other variants */
+.settings-card button.btn,
+.settings-card .btn {
+  background-color: #ef4444 !important;
+  color: #fff !important;
+  border: 1px solid #ef4444 !important;
+}
+
+.settings-card button.btn.btn-outline-primary,
+.settings-card button.btn.btn-outline-secondary {
+  background-color: #ef4444 !important;
+  color: #fff !important;
+  border: 1px solid #ef4444 !important;
+}
+
+/* Theme-aware colors */
+.app-section {
+  background: var(--bg, #f8f9fa);
+}
+
+.settings-sidebar {
+  background: var(--sidebar-bg, #ffffff);
+}
+
+.settings-card .card-header {
+  background: var(--card-header-bg, #ffffff);
+}
+
+/* Dark theme overrides when body has .dark-theme */
+body.dark-theme {
+  --bg: #0b1020;
+  --sidebar-bg: #06070a;
+  --card-header-bg: #0b1220;
+  color: #e6eef8;
+}
+
+body.dark-theme .list-group-item.bg-primary {
+  background-color: #0d6efd; /* keep primary color for header */
+}
+
+body.dark-theme .list-group-item {
+  color: #e6eef8;
+}
+
+

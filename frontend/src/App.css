@@ -1,0 +1,28 @@
+/* src/styles/App.css */
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  overflow: hidden;
+  background-color: #f8f9fa;
+}
+
+.dark-theme .app-container { background-color: #071023; }
+.dark-theme .main-content { color: #e6eef8; }
+
+.main-content {
+  flex-grow: 1;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  overflow-y: auto;
+}
+
+@media (max-width: 992px) {
+  .app-container {
+    flex-direction: column;
+  }
+
+  .main-content {
+    padding-bottom: 80px; /* for mobile nav spacing */
+  }
+}

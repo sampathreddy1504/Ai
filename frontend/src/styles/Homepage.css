@@ -1,0 +1,91 @@
+/* Homepage - Light / Friendly AI theme */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: auto; /* allow scrolling on homepage */
+  background: #f4f7fb; /* subtle off-white background */
+}
+
+/* Hero Section (Light / Friendly AI theme) */
+.hero-section {
+  background: linear-gradient(180deg, #ffffff, #f7fbff);
+  color: #0b1220;
+  padding-top: 80px; /* To avoid navbar overlap */
+  text-align: center;
+  padding-bottom: 60px;
+}
+
+/* Headings */
+.hero-section h1 {
+  font-weight: 700;
+  font-size: 2.6rem;
+  color: #0b1220;
+  text-shadow: 0 6px 30px rgba(13, 110, 253, 0.06);
+}
+
+.hero-section p {
+  font-size: 1.05rem;
+  color: #3b4858;
+}
+
+/* Feature Cards */
+.card {
+  background-color: #ffffff;
+  color: #0b1220;
+  border: none;
+  border-radius: 12px;
+  transition: all 0.35s ease;
+  box-shadow: 0 8px 30px rgba(20, 40, 80, 0.06);
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 36px rgba(20, 40, 80, 0.08);
+}
+
+.card h5 {
+  color: #0b5ed7; /* friendly blue */
+  font-weight: 700;
+}
+
+.card p {
+  color: #425165;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: #0b5ed7;
+  border: none;
+  border-radius: 30px;
+  transition: all 0.28s ease;
+  box-shadow: 0 8px 20px rgba(11, 94, 215, 0.15);
+}
+
+.btn-primary:hover {
+  background-color: #0a58ca;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(11, 94, 215, 0.18);
+}
+
+/* Navbar tweaks */
+.navbar-brand {
+  font-weight: 700;
+}
+
+.navbar {
+  box-shadow: 0 4px 12px rgba(11, 94, 215, 0.06);
+}
+
+/* Footer */
+footer.bg-primary {
+  background-color: #0b5ed7 !important;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-section h1 { font-size: 1.85rem; }
+  .card { margin-bottom: 12px; }
+}

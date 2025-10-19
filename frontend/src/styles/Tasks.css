@@ -1,0 +1,232 @@
+/* ====== Tasks.css ====== */
+
+/* General Container */
+.container {
+    background: #f8fafc;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+    transition: all 0.3s ease;
+  }
+  
+  /* Header Section */
+  h4 {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.2rem;
+  }
+  
+  small {
+    color: #64748b;
+  }
+  
+  /* Add Task Button */
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    transition: all 0.25s ease-in-out;
+    font-weight: 500;
+  }
+  
+  .btn-primary:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  }
+  
+  /* Tabs */
+  .nav-tabs {
+    border-bottom: 2px solid #e2e8f0;
+  }
+  
+  .nav-tabs .nav-link {
+    border: none;
+    color: #475569;
+    font-weight: 500;
+    transition: color 0.25s ease;
+  }
+  
+  .nav-tabs .nav-link.active {
+    color: #1e3a8a;
+    border-bottom: 3px solid #3b82f6;
+    background: transparent;
+  }
+  
+  /* List Styling */
+  .list-group {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  /* Scrollable container for tasks */
+  .tasks-scroll-container {
+    max-height: 48vh; /* limit to viewport height portion */
+    overflow-y: auto;
+    padding-right: 8px; /* breathing room for scrollbar */
+  }
+
+  /* Visible scrollbar styling (WebKit) */
+  .tasks-scroll-container::-webkit-scrollbar {
+    width: 10px;
+  }
+  .tasks-scroll-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 8px;
+  }
+  .tasks-scroll-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 8px;
+  }
+  
+  .list-group-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .list-group-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Task Text and Datetime */
+  .list-group-item strong {
+    font-size: 1.05rem;
+    color: #0f172a;
+  }
+  
+  .list-group-item small {
+    color: #64748b;
+    font-size: 0.85rem;
+  }
+  
+  /* Badge Styles */
+  .badge {
+    border-radius: 8px;
+    padding: 0.5em 0.8em;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  
+  .bg-success {
+    background-color: #22c55e !important;
+  }
+  
+  .bg-warning {
+    background-color: #facc15 !important;
+  }
+  
+  /* Remove Button */
+  .btn-danger {
+    border-radius: 8px;
+    background-color: #ef4444;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    transition: background-color 0.2s ease;
+  }
+  
+  .btn-danger:hover {
+    background-color: #dc2626;
+  }
+
+  /* Clear Completed button style */
+  .btn-clear-completed {
+    background-color: #ef4444 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 10px;
+    padding: 0.4rem 0.8rem;
+    transition: all 0.18s ease;
+    font-weight: 600;
+  }
+
+  .btn-clear-completed:hover {
+    background-color: #dc2626 !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    transform: translateY(-2px);
+  }
+  
+  /* Empty State */
+  .text-center strong {
+    color: #1e293b;
+  }
+  
+  .text-center p {
+    color: #64748b;
+  }
+  
+  /* Responsive Enhancements */
+  @media (max-width: 768px) {
+    .list-group-item {
+      flex-direction: column !important;
+      text-align: center;
+    }
+  
+    .d-flex.gap-2 {
+      justify-content: center;
+      margin-top: 0.8rem;
+    }
+  
+    .btn-primary {
+      width: 100%;
+    }
+  }
+
+  /* Dark theme overrides */
+  .dark-theme .container {
+    background: #071023;
+    color: #e6eef8;
+  }
+  .dark-theme .list-group-item {
+    background: #0b1220;
+    border: 1px solid #122033;
+    color: #e6eef8;
+  }
+  .dark-theme .badge.bg-warning {
+    background-color: #f59e0b !important;
+    color: #071023 !important;
+  }
+
+  /* Ensure clear completed button is visible in dark theme */
+  .dark-theme .btn-clear-completed {
+    color: #fecaca;
+    border-color: rgba(239,68,68,0.18);
+  }
+
+  .dark-theme .btn-clear-completed:hover {
+    color: #ff7b7b;
+    background-color: rgba(239,68,68,0.06);
+  }
+
+  /* Make sure general btn-danger (Remove buttons) are visible in dark mode */
+  .dark-theme .btn-danger {
+    background-color: #ef4444;
+    color: #fff;
+    border: none;
+  }
+
+  .dark-theme .btn-danger:hover {
+    background-color: #dc2626;
+  }
+
+/* Force Remove buttons inside tasks list to be filled red in all themes */
+.tasks-page .btn-danger,
+.tasks-page .btn-danger:focus {
+  background-color: #ef4444 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+/* Ensure clear button in tasks has priority */
+.tasks-page .btn-clear-completed,
+.tasks-page .btn-clear-completed:focus {
+  background-color: #ef4444 !important;
+  color: #fff !important;
+  border: none !important;
+}
+  

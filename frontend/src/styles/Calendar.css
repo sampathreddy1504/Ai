@@ -1,0 +1,89 @@
+/* ====== Calendar.css ====== */
+
+.calendar-container {
+    background: #f8fafc;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .calendar-title {
+    font-weight: 600;
+    color: #1e293b;
+  }
+  
+  .calendar-subtext {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-top: -3px;
+  }
+
+/* Dark theme */
+.dark-theme .calendar-subtext { color: #cbd5e1; }
+.dark-theme .rbc-calendar { background: #071023; color: #e6eef8; }
+  
+  .calendar-wrapper {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1rem;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .calendar-wrapper:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Reload Button */
+  .reload-btn {
+    border-radius: 10px;
+    font-weight: 500;
+  }
+  
+  /* Modal smoothness */
+  .modal-content {
+    border-radius: 12px !important;
+    transition: all 0.3s ease;
+  }
+  
+  /* Task items */
+  .task-info {
+    flex: 1;
+    text-align: left;
+  }
+  
+  .task-info h6 {
+    color: #0f172a;
+    font-weight: 500;
+  }
+  
+  .task-info small {
+    color: #64748b;
+  }
+  
+  /* Fade in animation */
+  .fade-in {
+    animation: fadeIn 0.4s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .calendar-container {
+      padding: 1rem;
+    }
+  
+    .calendar-wrapper {
+      padding: 0.5rem;
+    }
+  
+    .task-info {
+      text-align: center;
+    }
+  }
+  

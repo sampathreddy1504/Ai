@@ -1,0 +1,26 @@
+fastapi==0.118.0
+uvicorn[standard]==0.23.2
+psycopg2-binary==2.9.9
+redis==5.2.0
+neo4j==5.25.0
+cohere==5.18.0
+google-generativeai==0.8.5
+sqlalchemy==2.0.26
+pydantic==2.11.0
+pydantic-settings==2.4.0
+email-validator==2.2.0
+celery[redis]==5.3.1
+python-dotenv==1.0.0
+python-multipart==0.0.9
+pinecone>=2.2.0
+# Optional / heavy ML libraries. Commented out to keep Docker image small by default.
+# sentence-transformers
+# torch
+# transformers
+passlib[bcrypt]==1.7.4
+PyJWT==2.9.0
+bcrypt==4.0.1
+argon2-cffi==23.1.0
+
+# Notes:
+# - To include the commented ML libraries during build, set the build arg INSTALL_ML_LIBS=true

@@ -1,0 +1,234 @@
+/* Sidebar Container */
+.sidebar-container {
+  width: 250px;
+  transition: all 0.3s ease;
+  /* permanent light sidebar background */
+  background: linear-gradient(180deg, #ffffff, #f3f6fb);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: fixed; /* keeps it fixed on the side */
+  top: 0;
+  left: 0;
+  padding: 1rem 0.5rem;
+  backdrop-filter: blur(12px);
+  z-index: 100;
+  box-shadow: 2px 0 15px rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-container:hover {
+  box-shadow: 4px 0 20px rgba(0, 123, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Sidebar Header */
+.sidebar-container h4 {
+  text-align: center;
+  color: var(--sidebar-heading, #0d6efd);
+  margin-bottom: 2rem;
+  font-weight: bold;
+  font-size: 1.2rem;
+  letter-spacing: 0.5px;
+}
+
+/* Navigation Links */
+.nav-link {
+  color: var(--sidebar-link, #374151); /* darker on light bg */
+  font-size: 16px;
+  transition: all 0.3s ease;
+  padding: 0.6rem 1rem;
+  margin: 0.2rem 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  backdrop-filter: blur(8px);
+}
+
+.nav-link:hover {
+  background: rgba(13, 110, 253, 0.15);
+  color: #fff;
+  transform: translateX(3px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+}
+
+.active-link {
+  background: rgba(13, 110, 253, 0.3);
+  color: #fff !important;
+  font-weight: 600;
+  box-shadow: 0 0 12px rgba(13, 110, 253, 0.5);
+}
+
+/* Link Icons */
+.nav-link .fs-5 {
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.nav-link:hover .fs-5 {
+  transform: scale(1.2);
+  color: #0d6efd;
+}
+
+/* Sign Out Button */
+.sidebar-signout {
+  margin-top: auto;
+  margin-bottom: 1rem;
+  border-radius: 30px;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  background-color: var(--danger, #ef4444);
+  color: #fff;
+  border: none;
+}
+
+.sidebar-signout:hover {
+  background-color: var(--danger-hover, #dc2626);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.35);
+}
+
+/* Responsive Sidebar for Mobile */
+@media (max-width: 992px) {
+  .sidebar-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 0.5rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.4);
+  }
+
+  .sidebar-container h4 {
+    display: none;
+  }
+
+  .nav-link {
+    flex-direction: column;
+    font-size: 12px;
+    padding: 6px;
+    margin: 0;
+  }
+
+  .link-text {
+    display: none;
+  }
+
+  .btn-danger {
+    display: none;
+  }
+}
+
+/* Sign-out modal overlay */
+.sidebar-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999; /* ensure portal sits above sidebar */
+}
+
+.sidebar-modal {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 16px;
+  background: var(--modal-bg, #ffffff);
+  color: var(--modal-fg, #000);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+}
+
+/* Username / email lines in modal: dark on light modal for better contrast */
+.sidebar-modal p {
+  color: #111827; /* dark slate */
+  margin: 0 0 0.5rem 0;
+}
+.sidebar-modal p strong {
+  color: #0f172a;
+}
+
+/* In dark theme, modal text should stay light */
+.dark-theme .sidebar-modal p {
+  color: #cfe6ff;
+}
+.dark-theme .sidebar-modal p strong {
+  color: #e6eef8;
+}
+
+/* Ensure buttons inside the sign-out modal show danger styling */
+.sidebar-modal .btn-danger {
+  background-color: var(--danger, #ef4444);
+  color: #fff;
+  border: none;
+}
+.sidebar-modal .btn-danger:hover {
+  background-color: var(--danger-hover, #dc2626);
+}
+
+/* Force Sign Out confirm button to be red across themes (modal) */
+.sidebar-modal .btn-danger,
+.sidebar-modal .btn-danger:focus {
+  background-color: #ef4444 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+/* Dark theme overrides */
+.dark-theme .sidebar-modal { box-shadow: none; }
+
+/* Darken the sign-out confirmation modal when app theme is dark */
+.dark-theme .sidebar-modal {
+  background: #071023 !important;
+  color: #e6eef8 !important;
+  box-shadow: none !important;
+}
+
+/* Make the cancel/secondary button readable in dark modal */
+.dark-theme .sidebar-modal .btn-secondary {
+  background-color: #475569 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+/* Keep the Sign Out (danger) button visible on dark modal */
+.dark-theme .sidebar-modal .btn-danger {
+  background-color: #ef4444 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+/* When the app is in dark-theme, make the sidebar dark as well */
+.dark-theme .sidebar-container {
+  background: linear-gradient(180deg, #071023, #081226) !important;
+  box-shadow: none !important;
+}
+
+.dark-theme .sidebar-container h4 {
+  color: #60a5fa !important;
+}
+
+.dark-theme .nav-link {
+  color: #cbd5e1 !important;
+}
+
+.dark-theme .nav-link:hover {
+  background: rgba(96,165,250,0.06) !important;
+  color: #fff !important;
+}
+
+.dark-theme .active-link {
+  background: rgba(96,165,250,0.18) !important;
+  color: #fff !important;
+  box-shadow: 0 0 12px rgba(96,165,250,0.25) !important;
+}

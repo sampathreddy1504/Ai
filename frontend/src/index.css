@@ -1,0 +1,64 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+/* Default light theme */
+body[data-theme="light"] {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+/* Dark theme */
+body[data-theme="silver"] {
+  background-color: #c0c0c0; /* classic silver */
+  color: #2c2c2c; /* dark text for contrast */
+}
+
+body[data-theme="silver"] .sidebar {
+  background-color: #d9d9d9; /* lighter silver for sidebar */
+  color: #1a1a1a;
+}
+
+body[data-theme="silver"] .card {
+  background-color: #e6e6e6;
+  color: #1a1a1a;
+  border: 1px solid #b0b0b0;
+}
+
+body[data-theme="silver"] .btn {
+  background-color: #a6a6a6;
+  color: #ffffff;
+  border: none;
+}
+
+body[data-theme="silver"] .btn:hover {
+  background-color: #8c8c8c;
+}
+
+
+/* System theme (auto detect prefers-color-scheme) */
+body[data-theme="system"] {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+}
+
+/* Font sizes */
+body[data-font="small"] {
+  font-size: 14px;
+}
+body[data-font="medium"] {
+  font-size: 16px;
+}
+body[data-font="large"] {
+  font-size: 18px;
+}
+
