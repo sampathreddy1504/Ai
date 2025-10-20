@@ -24,11 +24,10 @@
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.9.1",
     "react-scripts": "5.0.1",
-    "serve": "^14.2.3",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "npx serve -s build",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -52,7 +51,7 @@
       "last 1 safari version"
     ]
   },
-  "description": "This project was bootstrapped with Create React App.",
+  "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
   "main": "server.js",
   "keywords": [],
   "author": "",
