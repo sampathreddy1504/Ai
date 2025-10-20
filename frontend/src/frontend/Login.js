@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { API_URL } from "../config";
+
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -13,7 +15,8 @@ function Login() {
     }
 
     try {
-      const res = await axios.post("/auth/login", { email, password });
+      const res = await axios.post(`${API_URL}/auth/login`, { email, password });
+
       setMessage(res.data.message);
 
       if (res.data.success && res.data.token && res.data.user) {
