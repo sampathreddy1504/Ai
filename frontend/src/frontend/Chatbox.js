@@ -14,7 +14,7 @@ function Chatbox({ chat }) {
   const [showFiles, setShowFiles] = useState(false);
   const chatContainerRef = useRef(null);
 
-  // Scroll to bottom on new message
+  // Scroll to bottom whenever new message appears
   useEffect(() => {
     chatContainerRef.current?.scrollTo({
       top: chatContainerRef.current.scrollHeight,
@@ -43,15 +43,15 @@ function Chatbox({ chat }) {
     try {
       let response;
 
-      // 🟩 If user uploaded files (docs/images)
+      // 🟩 If user uploaded files
       if (selectedFiles.length > 0) {
         const formData = new FormData();
-        formData.append("file", selectedFiles[0]); // ✅ backend expects single 'file'
+        formData.append("file", selectedFiles[0]); // ✅ backend expects "file"
         formData.append(
           "prompt",
           JSON.stringify({ text: userInput || "Analyze the uploaded file" })
         );
-        formData.append("token", localStorage.getItem("token") || "");
+        formData.append("token", localStorage.getItem("authToken") || ""); // ✅ unified with login/signup
 
         response = await fetch(`${API_BASE_URL}/chat-with-upload/`, {
           method: "POST",
@@ -64,13 +64,13 @@ function Chatbox({ chat }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             user_message: userInput,
-            token: localStorage.getItem("token") || "",
+            token: localStorage.getItem("authToken") || "", // ✅ unified with login/signup
             chat_id: null,
           }),
         });
       }
 
-      // Parse backend response
+      // Parse backend response safely
       const data = await response.json();
       const reply =
         data.reply ||
@@ -139,9 +139,7 @@ function Chatbox({ chat }) {
           </div>
         ))}
         {loading && (
-          <div className="text-center text-secondary">
-            AI is thinking...
-          </div>
+          <div className="text-center text-secondary">AI is thinking...</div>
         )}
       </div>
 
