@@ -4,7 +4,7 @@ import * as chrono from "chrono-node";
 import SpeechToText from "./components/SpeechToText";
 
 // 🟩 Backend URL (Render)
-const API_BASE_URL = "https://ai-1-wfwv.onrender.com"; // ← your backend Render URL
+const API_BASE_URL = "https://ai-1-wfwv.onrender.com"; // ← your deployed backend URL
 
 function Chatbox({ chat }) {
   const [messages, setMessages] = useState([]);
@@ -46,33 +46,47 @@ function Chatbox({ chat }) {
       // 🟩 If user uploaded files (docs/images)
       if (selectedFiles.length > 0) {
         const formData = new FormData();
-        selectedFiles.forEach((file) => formData.append("files", file));
-        formData.append("query", userInput || "Analyze the uploaded files");
+        formData.append("file", selectedFiles[0]); // ✅ backend expects single 'file'
+        formData.append(
+          "prompt",
+          JSON.stringify({ text: userInput || "Analyze the uploaded file" })
+        );
+        formData.append("token", localStorage.getItem("token") || "");
 
         response = await fetch(`${API_BASE_URL}/chat-with-upload/`, {
           method: "POST",
           body: formData,
         });
       } else {
-        // 🟩 Normal text query
+        // 🟩 Normal text chat request
         response = await fetch(`${API_BASE_URL}/chat/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: userInput }),
+          body: JSON.stringify({
+            user_message: userInput,
+            token: localStorage.getItem("token") || "",
+            chat_id: null,
+          }),
         });
       }
 
+      // Parse backend response
       const data = await response.json();
+      const reply =
+        data.reply ||
+        data.response ||
+        data.message ||
+        "⚠️ No response received from AI.";
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.response || "No response" },
+        { role: "assistant", content: reply },
       ]);
     } catch (error) {
       console.error("Error:", error);
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "⚠️ Failed to connect to backend." },
+        { role: "assistant", content: `⚠️ Error: ${error.message}` },
       ]);
     } finally {
       setSelectedFiles([]);
@@ -87,16 +101,23 @@ function Chatbox({ chat }) {
 
   return (
     <div className="container py-3">
+      {/* Chat Window */}
       <div
         ref={chatContainerRef}
         className="chat-container border rounded p-3 mb-3"
-        style={{ height: "70vh", overflowY: "auto", background: "#f9f9f9" }}
+        style={{
+          height: "70vh",
+          overflowY: "auto",
+          background: "#f9f9f9",
+        }}
       >
         {messages.map((msg, idx) => (
           <div
             key={idx}
             className={`d-flex mb-3 ${
-              msg.role === "user" ? "justify-content-end" : "justify-content-start"
+              msg.role === "user"
+                ? "justify-content-end"
+                : "justify-content-start"
             }`}
           >
             <div
@@ -118,11 +139,13 @@ function Chatbox({ chat }) {
           </div>
         ))}
         {loading && (
-          <div className="text-center text-secondary">AI is thinking...</div>
+          <div className="text-center text-secondary">
+            AI is thinking...
+          </div>
         )}
       </div>
 
-      {/* File Upload */}
+      {/* File Upload Section */}
       <div className="mb-2">
         <input
           type="file"
@@ -138,7 +161,7 @@ function Chatbox({ chat }) {
           ))}
       </div>
 
-      {/* Text Input */}
+      {/* Input & Buttons */}
       <div className="input-group">
         <input
           type="text"
