@@ -4,7 +4,7 @@ import * as chrono from "chrono-node";
 import SpeechToText from "./components/SpeechToText";
 
 // 🟩 Backend URL (Render)
-const API_BASE_URL = "https://ai-5-1kch.onrender.com"; // deployed backend URL
+const API_BASE_URL = "https://ai-1-8ayp.onrender.com"; // deployed backend URL
 
 function Chatbox({ chat }) {
   const [messages, setMessages] = useState([]);
