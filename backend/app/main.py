@@ -22,7 +22,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:5000",
-        "https://ai-6-ta6o.onrender.com",  # frontend (deployed)
+        "https://ai-9ddw.onrender.com",  # frontend (deployed)
         "https://ai-5-1kch.onrender.com", 
     ],
     allow_credentials=True,
