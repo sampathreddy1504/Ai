@@ -21,9 +21,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-    "http://localhost:5000",
-    "https://ai-4-w41p.onrender.com",  # frontend
-    "https://ai-1-wfwv.onrender.com", 
+        "http://localhost:5000",
+        "https://ai-6-ta6o.onrender.com",  # frontend (deployed)
+        "https://ai-5-1kch.onrender.com", 
     ],
     allow_credentials=True,
     allow_methods=["*"],
