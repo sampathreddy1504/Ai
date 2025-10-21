@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # =====================================================
 
 # Configure Gemini once
-genai.configure(api_key=settings.GOOGLE_API_KEY)
+genai.configure(api_key=settings.GOOGLE_API_KEYS)
 gemini_model = genai.GenerativeModel("gemini-pro")
 
 def get_response(user_id: str, user_text: str) -> str:
