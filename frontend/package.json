@@ -32,7 +32,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "proxy": "https://ai-5-1kch.onrender.com",
+  "proxy": "https://ai-1-8ayp.onrender.com",
   "eslintConfig": {
     "extends": [
       "react-app",
