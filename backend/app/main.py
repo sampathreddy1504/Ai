@@ -23,7 +23,7 @@ app.add_middleware(
         "http://localhost:3000",
         "http://localhost:5000",
         "https://ai-9ddw.onrender.com",  # frontend (deployed)
-        "https://ai-5-1kch.onrender.com", 
+        "https://ai-1-8ayp.onrender.com", 
     ],
     allow_credentials=True,
     allow_methods=["*"],
