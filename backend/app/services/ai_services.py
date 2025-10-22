@@ -19,7 +19,9 @@ logger = logging.getLogger(__name__)
 # AI Service Functions
 # =====================================================
 
-def get_response(user_id: str, user_text: str) -> str:
+def get_response(message: str, model: str = "gemini", history=None):
+    # Your logic
+
     """
     Generate AI response for a given user input.
     """
