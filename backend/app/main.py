@@ -6,7 +6,7 @@ import logging
 import jwt
 import json
 import re
-from urllib.parse import quote_plus
+from typing import Optional
 
 from app.services import ai_services, nlu
 from app.db import utils as db_utils
@@ -22,6 +22,7 @@ from app.api.auth import router as auth_router
 app = FastAPI(title="Personal AI Assistant")
 logger = logging.getLogger(__name__)
 
+# ------------------- CORS -------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -35,6 +36,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ------------------- Startup -------------------
 @app.on_event("startup")
 async def startup_event():
     await run_in_threadpool(create_tables)
@@ -43,7 +45,6 @@ async def startup_event():
 app.include_router(auth_router)
 
 # ------------------- Helpers -------------------
-
 def get_current_user_id(token: str) -> int:
     try:
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
@@ -54,25 +55,24 @@ def get_current_user_id(token: str) -> int:
 class ChatRequest(BaseModel):
     user_message: str
     token: str
-    chat_id: str | None = None
-    user_name: str | None = None
-    user_email: str | None = None
+    chat_id: Optional[str] = None
+    user_name: Optional[str] = None
+    user_email: Optional[str] = None
 
-# ------------------- Endpoints -------------------
-
+# ------------------- Root -------------------
 @app.get("/")
 async def root():
     return {"message": "🚀 Personal AI Assistant backend running!"}
 
+# ------------------- Greet Endpoint -------------------
 @app.get("/chat/greet")
-async def greet(token: str, chat_id: str | None = None):
+async def greet(token: str, chat_id: Optional[str] = None):
     try:
         user_id = get_current_user_id(token)
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    user_name = None
-    user_email = None
+    user_name, user_email = None, None
     try:
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         user_name = payload.get("name")
@@ -105,24 +105,23 @@ async def greet(token: str, chat_id: str | None = None):
     return {"greeted": False, "message": message}
 
 # ------------------- Chat Endpoint -------------------
-
 @app.post("/chat/")
 async def chat(request: ChatRequest):
     user_message = request.user_message
     user_id = get_current_user_id(request.token)
     chat_id = request.chat_id
 
-    print(f"🔍 Chat request - user_id: {user_id}, chat_id: {chat_id}, message: {user_message[:50]}...")
+    logger.info(f"🔍 Chat request - user_id: {user_id}, chat_id: {chat_id}, message: {user_message[:50]}...")
 
     try:
         # ---------- Determine intent ----------
         structured = nlu.get_structured_intent(user_message)
         action = structured.get("action")
 
-        # ---------- Quick greeting / identity responses ----------
+        # ---------- Quick greeting / identity ----------
         norm = user_message.lower().strip()
         greeting_match = bool(re.match(
-            r'^\s*(?:hi|hello|hey|greetings|good morning|good afternoon|good evening)\b(?:\s+\S{1,30}){0,3}[,!.\-]*\s*',
+            r'^\s*(?:hi|hello|hey|greetings|good morning|good afternoon|good evening)\b',
             norm, re.IGNORECASE
         ))
 
@@ -144,7 +143,6 @@ async def chat(request: ChatRequest):
             elif any(q in norm for q in email_queries):
                 reply = f"Your email is {email_from_token}" if email_from_token else "I don't have your email yet."
 
-            # Save chat and return immediately
             await run_in_threadpool(save_chat, user_id, user_message, reply, chat_id)
             await run_in_threadpool(save_chat_redis, user_id, user_message, reply, chat_id)
             return {"success": True, "reply": reply, "intent": structured, "chat_id": chat_id}
@@ -162,18 +160,20 @@ async def chat(request: ChatRequest):
             extra_chats = await run_in_threadpool(get_chat_history, user_id, 10)
             history_text = "\n".join([f"Human: {c['user_query']}\nAssistant: {c['ai_response']}" for c in extra_chats])
 
-        facts_list = await run_in_threadpool(get_facts_neo4j, user_id)
-        facts_text = "\n".join([f"{fact['key']}: {fact['value']}" for fact in facts_list])
-
-        user_msg_dict = {"sender": str(user_id), "text": user_message}
+        try:
+            facts_list = await run_in_threadpool(get_facts_neo4j, user_id)
+            facts_text = "\n".join([f"{fact['key']}: {fact['value']}" for fact in facts_list])
+        except Exception as e:
+            logger.warning(f"Neo4j fetch failed: {e}")
+            facts_text = ""
 
         # ---------- Handle actions ----------
         if action == "general_chat":
             response = await run_in_threadpool(
                 ai_services.get_response,
-                user_msg_dict,
-                history=history_text,
-                neo4j_facts=facts_text
+                user_message,
+                history_text,
+                facts_text
             )
             saved_chat_id = await run_in_threadpool(save_chat, user_id, user_message, response, chat_id)
             await run_in_threadpool(save_chat_redis, user_id, user_message, response, saved_chat_id)
@@ -182,22 +182,9 @@ async def chat(request: ChatRequest):
         elif action == "create_task":
             task_data = structured.get("data", {})
             if not task_data.get("datetime"):
-                pending = await run_in_threadpool(db_utils.get_pending_task, user_id)
-                if pending:
-                    pending_id = pending.get("id") if isinstance(pending, dict) else pending[0]
-                    pending_title = pending.get("title") if isinstance(pending, dict) else pending[1]
-                    parsed_time = nlu.parse_time_string(user_message)
-                    if parsed_time:
-                        data_with_user = {"title": pending_title, "datetime": parsed_time, "priority": "medium", "category": "personal", "notes": "", "user_id": user_id}
-                        await run_in_threadpool(db_utils.save_task, data_with_user)
-                        await run_in_threadpool(db_utils.delete_pending_task, pending_id)
-                        confirmation_message = f"Task saved: {pending_title} due {parsed_time}"
-                        saved_chat_id = await run_in_threadpool(save_chat, user_id, user_message, confirmation_message, chat_id)
-                        await run_in_threadpool(save_chat_redis, user_id, user_message, confirmation_message, saved_chat_id)
-                        return {"success": True, "reply": confirmation_message, "status": "✅ Task saved", "task": data_with_user}
-
-                follow_up = f"I can add the task '{task_data.get('title')}'. When should I remind you?"
-                await run_in_threadpool(db_utils.save_pending_task, user_id, task_data.get('title'))
+                # Ask for time
+                await run_in_threadpool(db_utils.save_pending_task, user_id, task_data.get("title"))
+                follow_up = f"When should I remind you for '{task_data.get('title')}'?"
                 saved_chat_id = await run_in_threadpool(save_chat, user_id, user_message, follow_up, chat_id)
                 await run_in_threadpool(save_chat_redis, user_id, user_message, follow_up, saved_chat_id)
                 return {"success": True, "reply": follow_up, "status": "awaiting_time", "task": task_data, "chat_id": saved_chat_id}
@@ -211,31 +198,20 @@ async def chat(request: ChatRequest):
 
         elif action == "fetch_tasks":
             tasks = await run_in_threadpool(db_utils.get_tasks, user_id)
-            tasks_summary = f"You have {len(tasks)} tasks."
-            tasks_msg_dict = {"sender": str(user_id), "text": tasks_summary}
-            ai_reply = await run_in_threadpool(
-                ai_services.get_response,
-                tasks_msg_dict,
-                history=history_text,
-                neo4j_facts=facts_text
-            )
-            return {"success": True, "reply": ai_reply, "tasks": tasks, "intent": structured}
+            reply = f"You have {len(tasks)} tasks."
+            saved_chat_id = await run_in_threadpool(save_chat, user_id, user_message, reply, chat_id)
+            await run_in_threadpool(save_chat_redis, user_id, user_message, reply, saved_chat_id)
+            return {"success": True, "reply": reply, "tasks": tasks, "intent": structured}
 
         elif action == "save_fact":
             key = structured["data"]["key"]
             value = structured["data"]["value"]
             await run_in_threadpool(save_fact_neo4j, key, value)
-            confirmation_message = f"I have saved the fact '{key}: {value}' in your knowledge base."
-            confirm_msg_dict = {"sender": str(user_id), "text": confirmation_message}
-            ai_reply = await run_in_threadpool(
-                ai_services.get_response,
-                confirm_msg_dict,
-                history=history_text,
-                neo4j_facts=facts_text
-            )
-            return {"success": True, "reply": ai_reply, "intent": structured}
+            reply = f"I have saved the fact '{key}: {value}' in your knowledge base."
+            saved_chat_id = await run_in_threadpool(save_chat, user_id, user_message, reply, chat_id)
+            await run_in_threadpool(save_chat_redis, user_id, user_message, reply, saved_chat_id)
+            return {"success": True, "reply": reply, "intent": structured}
 
-        # Other actions (open_external, get_chat_history) remain the same
         else:
             return {"success": False, "reply": "⚠ Unknown action", "intent": structured}
 
