@@ -4,17 +4,18 @@ import * as chrono from "chrono-node";
 import SpeechToText from "./components/SpeechToText";
 
 // 🟩 Backend URL (Render)
-const API_BASE_URL = "https://ai-1-8ayp.onrender.com"; // deployed backend URL
+const API_BASE_URL = "https://ai-1-8ayp.onrender.com"; // your deployed backend
 
-function Chatbox({ chat }) {
+function Chatbox() {
   const [messages, setMessages] = useState([]);
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [showFiles, setShowFiles] = useState(false);
+  const [chatId, setChatId] = useState(() => localStorage.getItem("chat_id")); // ✅ persistent chat
   const chatContainerRef = useRef(null);
 
-  // Scroll to bottom whenever new message appears
+  // ✅ Scroll to bottom on new message
   useEffect(() => {
     chatContainerRef.current?.scrollTo({
       top: chatContainerRef.current.scrollHeight,
@@ -22,11 +23,30 @@ function Chatbox({ chat }) {
     });
   }, [messages]);
 
+  // ✅ Auto-load chat history if chat_id exists (optional, if backend supports)
+  useEffect(() => {
+    const loadHistory = async () => {
+      if (!chatId) return;
+      try {
+        const res = await fetch(`${API_BASE_URL}/get-chat-history/${chatId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.messages) setMessages(data.messages);
+        }
+      } catch (err) {
+        console.error("Error loading chat history:", err);
+      }
+    };
+    loadHistory();
+  }, [chatId]);
+
+  // 🟩 Handle file selection
   const handleFileChange = (event) => {
     setSelectedFiles(Array.from(event.target.files));
     setShowFiles(true);
   };
 
+  // 🟩 Main send function
   const handleSend = async () => {
     if (!userInput.trim() && selectedFiles.length === 0) return;
 
@@ -43,35 +63,36 @@ function Chatbox({ chat }) {
     try {
       let response;
 
-      // 🟩 If user uploaded files
+      // 🟢 If user uploaded files
       if (selectedFiles.length > 0) {
         const formData = new FormData();
-        formData.append("file", selectedFiles[0]); // ✅ backend expects "file"
+        formData.append("file", selectedFiles[0]);
         formData.append(
           "prompt",
           JSON.stringify({ text: userInput || "Analyze the uploaded file" })
         );
-        formData.append("token", localStorage.getItem("authToken") || ""); // ✅ unified with login/signup
+        formData.append("token", localStorage.getItem("authToken") || "");
+        formData.append("chat_id", chatId || null); // ✅ reuse chat id
 
         response = await fetch(`${API_BASE_URL}/chat-with-upload/`, {
           method: "POST",
           body: formData,
         });
       } else {
-        // 🟩 Normal text chat request
+        // 🟢 Normal text chat request
         response = await fetch(`${API_BASE_URL}/chat/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             user_message: userInput,
-            token: localStorage.getItem("authToken") || "", // ✅ unified with login/signup
-            chat_id: null,
+            token: localStorage.getItem("authToken") || "",
+            chat_id: chatId || null, // ✅ persist same chat
           }),
         });
       }
 
-      // Parse backend response safely
       const data = await response.json();
+
       const reply =
         data.reply ||
         data.response ||
@@ -82,6 +103,12 @@ function Chatbox({ chat }) {
         ...prev,
         { role: "assistant", content: reply },
       ]);
+
+      // ✅ If backend returns new chat_id, save it permanently
+      if (data.chat_id && !chatId) {
+        setChatId(data.chat_id);
+        localStorage.setItem("chat_id", data.chat_id);
+      }
     } catch (error) {
       console.error("Error:", error);
       setMessages((prev) => [
@@ -95,12 +122,28 @@ function Chatbox({ chat }) {
     }
   };
 
+  // 🎙 Handle speech-to-text input
   const handleSpeechResult = (text) => {
     setUserInput(text);
   };
 
+  // 🔄 Start a new chat manually
+  const startNewChat = () => {
+    localStorage.removeItem("chat_id");
+    setChatId(null);
+    setMessages([]);
+  };
+
   return (
     <div className="container py-3">
+      {/* 🆕 New Chat Button */}
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <h4 className="fw-bold">💬 Personal AI Assistant</h4>
+        <button className="btn btn-secondary btn-sm" onClick={startNewChat}>
+          🆕 New Chat
+        </button>
+      </div>
+
       {/* Chat Window */}
       <div
         ref={chatContainerRef}
