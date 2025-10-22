@@ -1,13 +1,10 @@
-import time
 import logging
-import json
 from typing import List, Optional
-from datetime import datetime
 
 import google.generativeai as genai
 try:
     import cohere
-except Exception:
+except ImportError:
     cohere = None
 
 from app.config import settings
@@ -60,11 +57,37 @@ def get_response(message: dict, history: str = "", neo4j_facts: str = "") -> str
     )
 
     # =====================================================
-    # 3️⃣ Choose AI provider
+    # 3️⃣ Generate response with fallback
     # =====================================================
-    response_text = ""
-    try:
-        if settings.AI_PROVIDER.lower() == "cohere" and cohere:
+    response_text = "Sorry, I couldn't generate a response."
+    
+    # Try Gemini first if selected
+    if settings.AI_PROVIDER.lower() == "gemini":
+        try:
+            logger.info("💬 Trying Google Gemini model")
+            genai.configure(api_key=settings.GEMINI_API_KEYS.split(",")[0])
+            model = genai.GenerativeModel(settings.GEMINI_MODEL)
+            result = model.generate_content(prompt)
+            response_text = result.text.strip() if hasattr(result, "text") else str(result)
+        except Exception as e:
+            logger.warning(f"Gemini failed: {e}")
+            # fallback to Cohere
+            if cohere and settings.COHERE_API_KEY:
+                try:
+                    logger.info("💬 Falling back to Cohere model")
+                    client = cohere.Client(settings.COHERE_API_KEY)
+                    result = client.generate(
+                        model="command-xlarge-nightly",
+                        prompt=prompt,
+                        max_tokens=400,
+                        temperature=0.7,
+                    )
+                    response_text = result.generations[0].text.strip()
+                except Exception as e2:
+                    logger.error(f"Cohere fallback failed: {e2}")
+    # If AI_PROVIDER is Cohere or Gemini failed entirely
+    elif settings.AI_PROVIDER.lower() == "cohere" and cohere:
+        try:
             logger.info("💬 Using Cohere model")
             client = cohere.Client(settings.COHERE_API_KEY)
             result = client.generate(
@@ -74,18 +97,9 @@ def get_response(message: dict, history: str = "", neo4j_facts: str = "") -> str
                 temperature=0.7,
             )
             response_text = result.generations[0].text.strip()
-        else:
-            logger.info("💬 Using Google Gemini model")
-            genai.configure(api_key=settings.GEMINI_API_KEYS.split(",")[0])
-            result = genai.GenerativeModel("gemini-1.5-pro-latest").generate_content(prompt)
-            response_text = result.text.strip() if hasattr(result, "text") else str(result)
-    except Exception as e:
-        logger.error(f"Error generating AI response: {e}")
-        response_text = "Sorry, something went wrong while generating my response."
+        except Exception as e:
+            logger.error(f"Cohere generation failed: {e}")
 
-    # =====================================================
-    # 4️⃣ Return final reply
-    # =====================================================
     return response_text or "I'm not sure how to respond to that."
 
 
@@ -97,11 +111,25 @@ def summarize_text(text: str) -> str:
         return "No content to summarize."
 
     prompt = f"Summarize this text clearly and concisely:\n\n{text}"
+    # Try Gemini first, fallback to Cohere
     try:
         genai.configure(api_key=settings.GEMINI_API_KEYS.split(",")[0])
-        model = genai.GenerativeModel("gemini-1.5-pro-latest")
+        model = genai.GenerativeModel(settings.GEMINI_MODEL)
         result = model.generate_content(prompt)
         return result.text.strip() if hasattr(result, "text") else str(result)
     except Exception as e:
-        logger.error(f"Error summarizing text: {e}")
+        logger.warning(f"Gemini summarize failed: {e}")
+        if cohere and settings.COHERE_API_KEY:
+            try:
+                client = cohere.Client(settings.COHERE_API_KEY)
+                result = client.generate(
+                    model="command-xlarge-nightly",
+                    prompt=prompt,
+                    max_tokens=400,
+                    temperature=0.7,
+                )
+                return result.generations[0].text.strip()
+            except Exception as e2:
+                logger.error(f"Cohere summarize fallback failed: {e2}")
+                return "Could not summarize the content at this time."
         return "Could not summarize the content at this time."
