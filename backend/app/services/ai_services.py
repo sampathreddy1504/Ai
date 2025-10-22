@@ -1,7 +1,8 @@
+import time
 import logging
-from typing import List, Optional
-
+from typing import List
 import google.generativeai as genai
+
 try:
     import cohere
 except ImportError:
@@ -12,10 +13,6 @@ from app.prompt_templates import MAIN_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
-
-# =====================================================
-# AI Service Functions
-# =====================================================
 
 def get_response(message: dict, history: str = "", neo4j_facts: str = "") -> str:
     """
@@ -30,9 +27,7 @@ def get_response(message: dict, history: str = "", neo4j_facts: str = "") -> str
     if not user_text:
         return "I didn’t catch that. Could you say it again?"
 
-    # =====================================================
     # 1️⃣ Query & store semantic memory
-    # =====================================================
     try:
         matches = query_semantic_memory(user_id, user_text, top_k=5)
     except Exception as e:
@@ -44,9 +39,7 @@ def get_response(message: dict, history: str = "", neo4j_facts: str = "") -> str
     except Exception as e:
         logger.warning(f"Semantic memory store failed: {e}")
 
-    # =====================================================
-    # 2️⃣ Build context
-    # =====================================================
+    # 2️⃣ Build prompt
     context_text = "\n".join([m["content"] for m in matches]) if matches else ""
     prompt = (
         f"{MAIN_SYSTEM_PROMPT}\n\n"
@@ -56,37 +49,11 @@ def get_response(message: dict, history: str = "", neo4j_facts: str = "") -> str
         f"User: {user_text}\nAssistant:"
     )
 
-    # =====================================================
-    # 3️⃣ Generate response with fallback
-    # =====================================================
-    response_text = "Sorry, I couldn't generate a response."
-    
-    # Try Gemini first if selected
-    if settings.AI_PROVIDER.lower() == "gemini":
-        try:
-            logger.info("💬 Trying Google Gemini model")
-            genai.configure(api_key=settings.GEMINI_API_KEYS.split(",")[0])
-            model = genai.GenerativeModel(settings.GEMINI_MODEL)
-            result = model.generate_content(prompt)
-            response_text = result.text.strip() if hasattr(result, "text") else str(result)
-        except Exception as e:
-            logger.warning(f"Gemini failed: {e}")
-            # fallback to Cohere
-            if cohere and settings.COHERE_API_KEY:
-                try:
-                    logger.info("💬 Falling back to Cohere model")
-                    client = cohere.Client(settings.COHERE_API_KEY)
-                    result = client.generate(
-                        model="command-xlarge-nightly",
-                        prompt=prompt,
-                        max_tokens=400,
-                        temperature=0.7,
-                    )
-                    response_text = result.generations[0].text.strip()
-                except Exception as e2:
-                    logger.error(f"Cohere fallback failed: {e2}")
-    # If AI_PROVIDER is Cohere or Gemini failed entirely
-    elif settings.AI_PROVIDER.lower() == "cohere" and cohere:
+    # 3️⃣ Generate response
+    response_text = ""
+
+    # Try Cohere first
+    if cohere:
         try:
             logger.info("💬 Using Cohere model")
             client = cohere.Client(settings.COHERE_API_KEY)
@@ -98,9 +65,23 @@ def get_response(message: dict, history: str = "", neo4j_facts: str = "") -> str
             )
             response_text = result.generations[0].text.strip()
         except Exception as e:
-            logger.error(f"Cohere generation failed: {e}")
+            logger.warning(f"Cohere failed: {e}")
 
-    return response_text or "I'm not sure how to respond to that."
+    # Fallback to Gemini
+    if not response_text and settings.AI_PROVIDER.lower() == "gemini":
+        try:
+            logger.info("💬 Falling back to Google Gemini model")
+            genai.configure(api_key=settings.GEMINI_API_KEYS.split(",")[0])
+            result = genai.GenerativeModel(settings.GEMINI_MODEL).generate_content(prompt)
+            response_text = result.text.strip() if hasattr(result, "text") else str(result)
+        except Exception as e:
+            logger.error(f"Gemini fallback failed: {e}")
+
+    # Final fallback if nothing worked
+    if not response_text:
+        response_text = "Sorry, I couldn't generate a response at this time."
+
+    return response_text
 
 
 def summarize_text(text: str) -> str:
@@ -111,25 +92,33 @@ def summarize_text(text: str) -> str:
         return "No content to summarize."
 
     prompt = f"Summarize this text clearly and concisely:\n\n{text}"
-    # Try Gemini first, fallback to Cohere
-    try:
-        genai.configure(api_key=settings.GEMINI_API_KEYS.split(",")[0])
-        model = genai.GenerativeModel(settings.GEMINI_MODEL)
-        result = model.generate_content(prompt)
-        return result.text.strip() if hasattr(result, "text") else str(result)
-    except Exception as e:
-        logger.warning(f"Gemini summarize failed: {e}")
-        if cohere and settings.COHERE_API_KEY:
-            try:
-                client = cohere.Client(settings.COHERE_API_KEY)
-                result = client.generate(
-                    model="command-xlarge-nightly",
-                    prompt=prompt,
-                    max_tokens=400,
-                    temperature=0.7,
-                )
-                return result.generations[0].text.strip()
-            except Exception as e2:
-                logger.error(f"Cohere summarize fallback failed: {e2}")
-                return "Could not summarize the content at this time."
-        return "Could not summarize the content at this time."
+    response_text = ""
+
+    # Try Cohere first
+    if cohere:
+        try:
+            client = cohere.Client(settings.COHERE_API_KEY)
+            result = client.generate(
+                model="command-xlarge-nightly",
+                prompt=prompt,
+                max_tokens=300,
+                temperature=0.7,
+            )
+            response_text = result.generations[0].text.strip()
+        except Exception as e:
+            logger.warning(f"Cohere summarize failed: {e}")
+
+    # Fallback to Gemini
+    if not response_text and settings.AI_PROVIDER.lower() == "gemini":
+        try:
+            genai.configure(api_key=settings.GEMINI_API_KEYS.split(",")[0])
+            model = genai.GenerativeModel(settings.GEMINI_MODEL)
+            result = model.generate_content(prompt)
+            response_text = result.text.strip() if hasattr(result, "text") else str(result)
+        except Exception as e:
+            logger.error(f"Gemini summarize fallback failed: {e}")
+
+    if not response_text:
+        response_text = "Could not summarize the content at this time."
+
+    return response_text
