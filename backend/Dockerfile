@@ -35,6 +35,7 @@ RUN pip install --upgrade pip setuptools wheel \
         pip install --no-cache-dir -r requirements.txt; \
     else \
         echo "⚙️ Installing lightweight requirements (no ML libs)..." && \
+        # exclude heavy ML libraries
         grep -viE '^(torch|transformers|sentence-transformers)' requirements.txt > /tmp/reqs.txt && \
         pip install --no-cache-dir -r /tmp/reqs.txt; \
     fi
@@ -43,6 +44,13 @@ RUN pip install --upgrade pip setuptools wheel \
 #  Copy Application Code
 # ===============================
 COPY . .
+
+# ===============================
+#  Optional: Install sentence-transformers if ML libs enabled
+# ===============================
+RUN if [ "$INSTALL_ML_LIBS" = "true" ]; then \
+        pip install --no-cache-dir sentence-transformers==2.2.2; \
+    fi
 
 # ===============================
 #  Runtime Configuration
