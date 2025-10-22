@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 genai.configure(api_key=settings.GEMINI_API_KEYS)
 gemini_model = genai.GenerativeModel("gemini-pro")
 
-def get_response(user_id: str, user_text: str) -> str:
+def get_response(user_id: str, user_text: str, history: Optional[list] = None) -> str:
     """
     Generate AI response for a given user input.
     """
@@ -34,7 +34,11 @@ def get_response(user_id: str, user_text: str) -> str:
     store_semantic_memory(user_id, user_text)
 
     context_text = "\n".join([m['content'] for m in matches]) if matches else ""
-    prompt = f"{MAIN_SYSTEM_PROMPT}\nContext:\n{context_text}\nUser: {user_text}"
+
+    # Add conversation context if available
+    history_text = "\n".join([f"User: {h['user']}\nAI: {h['ai']}" for h in history]) if history else ""
+
+    prompt = f"{MAIN_SYSTEM_PROMPT}\n{history_text}\nContext:\n{context_text}\nUser: {user_text}"
 
     try:
         if settings.AI_PROVIDER == "cohere" and cohere:
@@ -48,6 +52,7 @@ def get_response(user_id: str, user_text: str) -> str:
     except Exception as e:
         logger.error(f"Error generating AI response: {e}", exc_info=True)
         return "⚠️ Sorry, something went wrong while generating a response."
+
 
 def summarize_text(text: str) -> str:
     """
