@@ -23,25 +23,24 @@ logger = logging.getLogger(__name__)
 genai.configure(api_key=settings.GEMINI_API_KEYS)
 gemini_model = genai.GenerativeModel("gemini-pro")
 
-def get_response(user_id: str, user_text: str, history: Optional[list] = None, neo4j_facts: Optional[list] = None) -> str:
+def get_response(user_text: str, history_text: str = "", neo4j_facts_text: str = "", user_id: Optional[str] = None) -> str:
     """
     Generate AI response for a given user input.
     """
     from app.services.semantic_memory import query_semantic_memory, store_semantic_memory
+    try:
+        # Query and store semantic memory if user_id is provided
+        semantic_context = ""
+        if user_id:
+            matches = query_semantic_memory(user_id, user_text, top_k=5)
+            store_semantic_memory(user_id, user_text)
+            semantic_context = "\n".join([m['content'] for m in matches]) if matches else ""
 
-    # Query and store semantic memory
-    matches = query_semantic_memory(user_id, user_text, top_k=5)
-    store_semantic_memory(user_id, user_text)
+        # Combine Neo4j facts
+        graph_context = neo4j_facts_text if neo4j_facts_text else ""
 
-    # Combine semantic memory + Neo4j facts
-    semantic_context = "\n".join([m['content'] for m in matches]) if matches else ""
-    graph_context = "\n".join([f"- {fact}" for fact in neo4j_facts]) if neo4j_facts else ""
-
-    # Build conversation history
-    history_text = "\n".join([f"User: {h['user']}\nAI: {h['ai']}" for h in history]) if history else ""
-
-    # Final prompt
-    prompt = f"""{MAIN_SYSTEM_PROMPT}
+        # Build final prompt
+        prompt = f"""{MAIN_SYSTEM_PROMPT}
 
 Previous Conversation:
 {history_text}
@@ -53,7 +52,7 @@ Relevant Knowledge (from database + Neo4j):
 User: {user_text}
 """
 
-    try:
+        # Generate response
         if settings.AI_PROVIDER == "cohere" and cohere:
             client = cohere.Client(settings.COHERE_API_KEY)
             result = client.generate(model="command-xlarge-nightly", prompt=prompt, max_tokens=300)
